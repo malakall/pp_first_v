@@ -52,6 +52,31 @@ async def create_heatmap(
     return {"task_id": task.id}
 
 
+@router.get("/history", summary="Список всех тепловых карт текущего пользователя")
+async def get_my_heatmaps(
+    current_user: Users = Depends(get_current_user),
+):
+    # достаём все heatmap’ы этого пользователя из БД
+    heatmaps = await HeatmapDAO.find_all_for_ml(user_id=current_user.id)
+
+    # формируем удобный ответ
+    result = []
+    for h in heatmaps:
+        result.append(
+            {
+                "id": h.id,
+                "task_id": h.task_id,
+                "video_filename": h.video_filename,
+                "image_filename": h.image_filename,
+                "created_at": h.created_at.isoformat() if h.created_at else None,
+                # фронт может просто подставить это как src для <img>
+                "image_url": f"/ml/heatmap/{h.task_id}" if h.image_filename else None,
+            }
+        )
+
+    return result
+
+
 @router.get("/{task_id}", summary="Получить статус задачи / тепловую карту")
 async def get_heatmap(
     task_id: str,
@@ -89,3 +114,6 @@ async def get_heatmap(
         )
 
     return {"status": result.state}
+
+
+
