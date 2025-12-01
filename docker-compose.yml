@@ -21,7 +21,7 @@ services:
     ports:
       - "6379:6379"
 
-  web:
+  backend:
     build: .
     container_name: fastapi_app
     restart: always
@@ -64,6 +64,17 @@ services:
     volumes:
       - ./videos:/app/videos
       - ./heatmaps:/app/heatmaps
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:4173"
+    environment:
+      VITE_API_URL: "http://localhost:8000"
 
 volumes:
   postgres_data:
